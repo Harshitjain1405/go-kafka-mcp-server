@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  cassandra:
+    image: cassandra:4.1
+    container_name: go-mcp-cassandra
+    ports:
+      - "${CASSANDRA_PORT:-9042}:9042"
+    environment:
+      CASSANDRA_CLUSTER_NAME: local-cs-cluster
+      CASSANDRA_DC: dc1
+      CASSANDRA_RACK: rack1
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+      MAX_HEAP_SIZE: 512M
+      HEAP_NEWSIZE: 128M
+    volumes:
+      - cassandra-data:/var/lib/cassandra
+    healthcheck:
+      test: ["CMD", "cqlsh", "-e", "describe keyspaces"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  vault:
+    image: hashicorp/vault:1.15
+    container_name: go-mcp-vault
+    ports:
+      - "${VAULT_PORT:-8200}:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: dev-root-token
+      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+    cap_add:
+      - IPC_LOCK
+
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
+    container_name: go-mcp-opensearch
+    ports:
+      - "${OPENSEARCH_PORT:-9200}:9200"
+      - "${OPENSEARCH_PERF_PORT:-9600}:9600"
+    environment:
+      discovery.type: single-node
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+      DISABLE_SECURITY_PLUGIN: "true"
+      OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+
+  consul:
+    image: hashicorp/consul:1.17
+    container_name: go-mcp-consul
+    ports:
+      - "${CONSUL_PORT:-8500}:8500"
+      - "${CONSUL_DNS_PORT:-8600}:8600/udp"
+    command: agent -server -ui -bootstrap-expect=1 -client=0.0.0.0
+
+volumes:
+  cassandra-data:
+  opensearch-data:

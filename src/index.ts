@@ -38,6 +38,17 @@ import {
   runGoTests,
   initGoKafkaProject,
 } from './tools/goservice.js';
+import {
+  startInfra,
+  stopInfra,
+  infraStatus,
+  setupVaultSecrets,
+  setupCassandraKeyspace,
+  runCqlQuery,
+  setConsulConfig,
+  getConsulConfig,
+  getPolicyEngineEnvVars,
+} from './tools/infra.js';
 
 // ── Create MCP Server ──────────────────────────────────────────────────────────
 
@@ -430,6 +441,128 @@ server.tool(
   },
   async ({ projectPath, testPattern, verbose }) => {
     const result = runGoTests(projectPath, testPattern, verbose);
+    return { content: [{ type: 'text', text: result }] };
+  }
+);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  CS-POLICY-ENGINE INFRA TOOLS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+server.tool(
+  'start_infra',
+  'Start cs-policy-engine infra services (Cassandra, Vault, OpenSearch, Consul) via Docker Compose. Optionally specify which services to start.',
+  {
+    services: z.array(z.enum(['cassandra', 'vault', 'opensearch', 'consul'])).optional()
+      .describe('Specific services to start. Leave empty to start all.'),
+  },
+  async ({ services }) => {
+    const result = startInfra(services);
+    return { content: [{ type: 'text', text: result }] };
+  }
+);
+
+server.tool(
+  'stop_infra',
+  'Stop cs-policy-engine infra services (Cassandra, Vault, OpenSearch, Consul)',
+  {
+    services: z.array(z.enum(['cassandra', 'vault', 'opensearch', 'consul'])).optional()
+      .describe('Specific services to stop. Leave empty to stop all.'),
+  },
+  async ({ services }) => {
+    const result = stopInfra(services);
+    return { content: [{ type: 'text', text: result }] };
+  }
+);
+
+server.tool(
+  'infra_status',
+  'Show status of cs-policy-engine infra containers (Cassandra, Vault, OpenSearch, Consul)',
+  {},
+  async () => {
+    const result = infraStatus();
+    return { content: [{ type: 'text', text: result }] };
+  }
+);
+
+server.tool(
+  'setup_vault_secrets',
+  'Seed the local Vault dev server with secrets cs-policy-engine expects (Cassandra creds, Kafka SASL, OpenSearch creds)',
+  {
+    cassUser: z.string().optional().describe('Cassandra username (default: cassandra)'),
+    cassPass: z.string().optional().describe('Cassandra password (default: cassandra)'),
+    kafkaUser: z.string().optional().describe('Kafka SASL username (leave empty if SASL disabled)'),
+    kafkaPass: z.string().optional().describe('Kafka SASL password (leave empty if SASL disabled)'),
+    esUser: z.string().optional().describe('OpenSearch username (default: admin)'),
+    esPass: z.string().optional().describe('OpenSearch password (default: admin)'),
+  },
+  async ({ cassUser, cassPass, kafkaUser, kafkaPass, esUser, esPass }) => {
+    const result = setupVaultSecrets(cassUser, cassPass, kafkaUser, kafkaPass, esUser, esPass);
+    return { content: [{ type: 'text', text: result }] };
+  }
+);
+
+server.tool(
+  'setup_cassandra_keyspace',
+  'Create the Cassandra keyspace for cs-policy-engine (default: qualys_cms)',
+  {
+    keyspace: z.string().optional().describe('Keyspace name (default: qualys_cms)'),
+    replication: z.number().optional().describe('Replication factor (default: 1)'),
+  },
+  async ({ keyspace, replication }) => {
+    const result = setupCassandraKeyspace(keyspace, replication);
+    return { content: [{ type: 'text', text: result }] };
+  }
+);
+
+server.tool(
+  'run_cql',
+  'Run a CQL query against the local Cassandra instance',
+  {
+    query: z.string().describe('CQL query to execute'),
+  },
+  async ({ query }) => {
+    const result = runCqlQuery(query);
+    return { content: [{ type: 'text', text: result }] };
+  }
+);
+
+server.tool(
+  'set_consul_kv',
+  'Set a key-value pair in local Consul for cs-policy-engine config',
+  {
+    key: z.string().describe('Consul KV key'),
+    value: z.string().describe('Value to set'),
+  },
+  async ({ key, value }) => {
+    const result = setConsulConfig(key, value);
+    return { content: [{ type: 'text', text: result }] };
+  }
+);
+
+server.tool(
+  'get_consul_kv',
+  'Get a value from local Consul KV store',
+  {
+    key: z.string().describe('Consul KV key to read'),
+  },
+  async ({ key }) => {
+    const result = getConsulConfig(key);
+    return { content: [{ type: 'text', text: result }] };
+  }
+);
+
+server.tool(
+  'policy_engine_env',
+  'Generate all environment variables needed to run cs-policy-engine locally (Kafka, Cassandra, Vault, OpenSearch)',
+  {
+    kafkaHost: z.string().optional().describe('Kafka bootstrap server (default: localhost:9092)'),
+    cassHost: z.string().optional().describe('Cassandra host (default: localhost:9042)'),
+    vaultAddr: z.string().optional().describe('Vault address (default: http://localhost:8200)'),
+    esService: z.string().optional().describe('OpenSearch host (default: localhost:9200)'),
+  },
+  async ({ kafkaHost, cassHost, vaultAddr, esService }) => {
+    const result = getPolicyEngineEnvVars(kafkaHost, cassHost, vaultAddr, esService);
     return { content: [{ type: 'text', text: result }] };
   }
 );
