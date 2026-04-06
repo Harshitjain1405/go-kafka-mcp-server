@@ -1,0 +1,32 @@
+{
+  "activeEnvironment": "local",
+  "environments": {
+    "local": {
+      "name": "Local Development",
+      "kafkaBootstrapServers": "localhost:9092",
+      "zookeeperConnect": "localhost:2181",
+      "kafkaUIPort": 8089,
+      "kafkaExternalPort": 9092,
+      "kafkaInternalPort": 29092,
+      "zookeeperPort": 2181
+    },
+    "pod1": {
+      "name": "Pod 1",
+      "kafkaBootstrapServers": "<your-pod1-kafka-host>:9092",
+      "zookeeperConnect": "<your-pod1-zk-host>:2181",
+      "kafkaUIPort": 8089,
+      "kafkaExternalPort": 9092,
+      "kafkaInternalPort": 29092,
+      "zookeeperPort": 2181
+    },
+    "pod2": {
+      "name": "Pod 2",
+      "kafkaBootstrapServers": "<your-pod2-kafka-host>:9092",
+      "zookeeperConnect": "<your-pod2-zk-host>:2181",
+      "kafkaUIPort": 8090,
+      "kafkaExternalPort": 9093,
+      "kafkaInternalPort": 29093,
+      "zookeeperPort": 2182
+    }
+  }
+}
