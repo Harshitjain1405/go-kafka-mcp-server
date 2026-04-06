@@ -3,11 +3,36 @@
   "version": "1.0.0",
   "description": "MCP server for running Go services with librdkafka locally on Windows",
   "main": "dist/index.js",
+  "bin": {
+    "go-kafka-mcp-server": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "docker-compose.kafka.yml",
+    "mcp-config.example.json",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
+    "prepare": "npm run build",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Harshitjain1405/go-kafka-mcp-server.git"
+  },
+  "keywords": [
+    "mcp",
+    "kafka",
+    "librdkafka",
+    "go",
+    "golang",
+    "confluent-kafka-go",
+    "windows"
+  ],
+  "author": "@hjain",
+  "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
     "zod": "^3.23.8"

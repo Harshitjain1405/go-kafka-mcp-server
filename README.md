@@ -89,20 +89,44 @@ Use `switch_environment` tool to switch between pods at runtime.
 
 > **Note:** confluent-kafka-go v2 can statically link librdkafka, which may simplify the setup. The `build_go_service` tool sets up CGO environment variables automatically.
 
-## Setup
+## Setup (for contributors)
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/Harshitjain1405/go-kafka-mcp-server.git
 cd go-kafka-mcp-server
 npm install
 npm run build
-cp mcp-config.example.json mcp-config.json  # then edit with your pod details
 ```
 
 ## Windsurf IDE Configuration
 
-Add the following to your Windsurf MCP settings (`.windsurf/mcp_config.json` or global settings):
+Add the following to your Windsurf MCP settings (`~/.codeium/windsurf/mcp_config.json` or `.windsurf/mcp_config.json`):
 
+**Option 1 — via npx (recommended, no local clone needed):**
+```json
+{
+  "mcpServers": {
+    "go-kafka": {
+      "command": "npx",
+      "args": ["-y", "github:Harshitjain1405/go-kafka-mcp-server"]
+    }
+  }
+}
+```
+
+**Option 2 — if published to npm:**
+```json
+{
+  "mcpServers": {
+    "go-kafka": {
+      "command": "npx",
+      "args": ["-y", "@hjain/go-kafka-mcp-server"]
+    }
+  }
+}
+```
+
+**Option 3 — local clone (development):**
 ```json
 {
   "mcpServers": {
